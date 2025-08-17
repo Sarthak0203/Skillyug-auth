@@ -1,20 +1,26 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, BookOpen } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+    }
+  };
 
   const navLinks = [
-    { name: 'Home', path: '/' },
+    { name: 'Home', path: user ? '/dashboard' : '/' },
     { name: 'Courses', path: '/courses' },
-    // { name: 'Explore Courses', path: '/explore-courses' },
     { name: 'AboutUs', path: '/about-us' },
     { name: 'Join Our Team', path: '/join-our-team' },
-    // { name: 'Student Dashboard', path: '/student-dashboard' },
-    // { name: 'Mentors Dashboard', path: '/mentors-dashboard' },
-    // { name: 'Admin Dashboard', path: '/admin-dashboard' },
+
   ];
 
   return (
@@ -22,9 +28,9 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={user ? '/dashboard' : '/'} className="flex items-center space-x-2">
             <img
-              src="/logo/Logo.png" // use "src={logo}" if you import it
+              src="/logo/Logo.png" 
               alt="Skillyug Logo"
               className="h-12 w-auto object-contain mt-2"
             />
@@ -44,12 +50,22 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <Link
-              to="/login"
-              className="ml-4 px-6 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
-            >
-              Login
-            </Link>
+            {user ? (
+              <button
+                onClick={handleSignOut}
+                className="ml-4 flex items-center space-x-2 px-6 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign Out</span>
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="ml-4 px-6 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
+              >
+                Login
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -80,13 +96,26 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
-              <Link
-                to="/login"
-                onClick={() => setIsOpen(false)}
-                className="block px-3 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
-              >
-                Login
-              </Link>
+              {user ? (
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setIsOpen(false);
+                  }}
+                  className="flex items-center space-x-2 w-full px-3 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign Out</span>
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-3 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
+                >
+                  Login
+                </Link>
+              )}
             </div>
           </div>
         )}

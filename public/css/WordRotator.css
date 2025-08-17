@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+@layer utilities {
+    @keyframes slide-down {
+        0% {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .animate-slide-down {
+        animation: slide-down 3s ease-in-out;
+    }
+}

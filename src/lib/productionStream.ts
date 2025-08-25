@@ -55,12 +55,21 @@ class ProductionStreamManager {
 
   async startStreaming(channelName: string, userId: string): Promise<MediaStream | null> {
     try {
+      console.log('[ProductionStream] Starting streaming...', { channelName, userId })
+      console.log('[ProductionStream] App ID:', AGORA_CONFIG.appId?.slice(0, 8) + '...')
+      
+      // Validate configuration
+      if (!AGORA_CONFIG.appId || AGORA_CONFIG.appId === 'your-agora-app-id') {
+        throw new Error('❌ Agora App ID is missing or invalid')
+      }
+
       await this.initializeClient()
 
       // Set client role to host for instructor
       await this.client.setClientRole('host')
 
       // Join the channel
+      console.log('[ProductionStream] Attempting to join channel...')
       await this.client.join(
         AGORA_CONFIG.appId,
         channelName,
@@ -69,7 +78,7 @@ class ProductionStreamManager {
       )
 
       this.isJoined = true
-      console.log('[ProductionStream] Joined channel:', channelName)
+      console.log('[ProductionStream] ✅ Successfully joined channel:', channelName)
 
       // Create local tracks
       this.localVideoTrack = await AgoraRTC.createCameraVideoTrack({
@@ -90,14 +99,27 @@ class ProductionStreamManager {
 
       // Publish tracks
       await this.client.publish([this.localVideoTrack, this.localAudioTrack])
-      console.log('[ProductionStream] Local tracks published')
+      console.log('[ProductionStream] ✅ Local tracks published successfully')
 
       // Return a dummy MediaStream for compatibility
       // In production, you'd handle video display differently
       return new MediaStream()
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ProductionStream] Failed to start streaming:', error)
+      
+      // Enhanced error messaging
+      if (error.message?.includes('CAN_NOT_GET_GATEWAY_SERVER')) {
+        throw new Error('❌ Agora service connection failed. Please check your App ID and network connection.')
+      } else if (error.message?.includes('INVALID_OPERATION')) {
+        // Try to leave first, then retry
+        console.log('[ProductionStream] Attempting to reset connection...')
+        await this.stopStreaming()
+        throw new Error('❌ Connection conflict detected. Please try again.')
+      } else if (error.message?.includes('dynamic use static key')) {
+        throw new Error('❌ Agora authentication error. App ID may be incorrect or expired.')
+      }
+      
       throw error
     }
   }
@@ -128,29 +150,48 @@ class ProductionStreamManager {
 
   async stopStreaming(): Promise<void> {
     try {
+      console.log('[ProductionStream] Stopping streaming...')
+      
       // Stop and close local tracks
       if (this.localVideoTrack) {
         this.localVideoTrack.stop()
         this.localVideoTrack.close()
         this.localVideoTrack = null
+        console.log('[ProductionStream] Video track stopped')
       }
 
       if (this.localAudioTrack) {
         this.localAudioTrack.stop()
         this.localAudioTrack.close()
         this.localAudioTrack = null
+        console.log('[ProductionStream] Audio track stopped')
       }
 
       // Leave the channel
       if (this.client && this.isJoined) {
         await this.client.leave()
         this.isJoined = false
+        console.log('[ProductionStream] Left channel')
       }
 
-      console.log('[ProductionStream] Streaming stopped')
+      // Reset client to ensure clean state
+      if (this.client) {
+        this.client.removeAllListeners()
+        this.client = null
+        console.log('[ProductionStream] Client reset')
+      }
+
+      this.remoteUsers = []
+      console.log('[ProductionStream] ✅ Streaming stopped successfully')
 
     } catch (error) {
       console.error('[ProductionStream] Error stopping stream:', error)
+      // Force reset even if there's an error
+      this.localVideoTrack = null
+      this.localAudioTrack = null
+      this.isJoined = false
+      this.client = null
+      this.remoteUsers = []
     }
   }
 

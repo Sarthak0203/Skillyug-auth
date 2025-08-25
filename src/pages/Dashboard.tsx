@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { LiveStreamSection } from '../components/LiveStreamSection';
 import { LiveStreamDebugPanel } from '../components/LiveStreamDebugPanel';
 import { StreamStatusDebugger } from '../components/StreamStatusDebugger';
+import { AgoraConnectionTest } from '../components/AgoraConnectionTest';
 import { StreamDiagnostic } from '../components/StreamDiagnostic';
 
 const Dashboard = () => {
@@ -270,6 +271,7 @@ const Dashboard = () => {
       case 'livestream':
         return (
           <div className="space-y-4">
+            <AgoraConnectionTest />
             <StreamStatusDebugger />
             <LiveStreamSection />
           </div>

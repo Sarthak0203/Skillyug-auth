@@ -4,6 +4,8 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { LiveStreamSection } from '../components/LiveStreamSection';
 import { LiveStreamDebugPanel } from '../components/LiveStreamDebugPanel';
+import { StreamStatusDebugger } from '../components/StreamStatusDebugger';
+import { StreamDiagnostic } from '../components/StreamDiagnostic';
 
 const Dashboard = () => {
   const { user, profile, signOut, createProfileForCurrentUser, updatePassword } = useAuth();
@@ -266,7 +268,12 @@ const Dashboard = () => {
         );
         
       case 'livestream':
-        return <LiveStreamSection />;
+        return (
+          <div className="space-y-4">
+            <StreamStatusDebugger />
+            <LiveStreamSection />
+          </div>
+        );
         
       case 'courses':
         return (
@@ -410,6 +417,9 @@ const Dashboard = () => {
       
       {/* Debug Panel */}
       <LiveStreamDebugPanel />
+      
+      {/* Stream Diagnostic - Temporary for troubleshooting */}
+      <StreamDiagnostic />
     </div>
   );
 };

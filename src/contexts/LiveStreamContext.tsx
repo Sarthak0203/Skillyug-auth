@@ -127,12 +127,26 @@ export const LiveStreamProvider = ({ children }: LiveStreamProviderProps) => {
   // Force component updates when stream changes
   const forceUpdate = () => setStreamUpdateTrigger(prev => prev + 1)
 
-  // Check for active live streams on component mount
+  // Check for active live streams on component mount and periodically
   useEffect(() => {
+    console.log('[LiveStreamContext] 🚀 Setting up live stream monitoring...')
+    console.log('[LiveStreamContext] 👤 User role - canStream:', canStream)
+    
     checkActiveLiveStream()
     fetchRecordedStreams()
     
+    // For students, check more frequently for active streams
+    let periodicCheck: NodeJS.Timeout | null = null
+    if (!canStream) {
+      console.log('[LiveStreamContext] 📱 Student: Setting up periodic stream checks every 3 seconds...')
+      periodicCheck = setInterval(() => {
+        console.log('[LiveStreamContext] 🔍 Student: Periodic check for active streams...')
+        checkActiveLiveStream()
+      }, 3000) // Check every 3 seconds
+    }
+    
     // Set up real-time subscription for live stream status
+    console.log('[LiveStreamContext] 📡 Setting up real-time subscriptions...')
     const streamSubscription = supabase
       .channel('live_streams')
       .on('postgres_changes', {
@@ -140,10 +154,28 @@ export const LiveStreamProvider = ({ children }: LiveStreamProviderProps) => {
         schema: 'public',
         table: 'live_streams'
       }, (payload) => {
-        console.log('Live stream update:', payload)
-        checkActiveLiveStream()
+        console.log('[LiveStreamContext] 🔔 Real-time stream update received:', {
+          eventType: payload.eventType,
+          table: payload.table,
+          schema: payload.schema,
+          new: payload.new,
+          old: payload.old,
+          timestamp: new Date().toISOString()
+        })
+        
+        // Enhanced debugging for mobile devices
+        if (!canStream) {
+          console.log('[LiveStreamContext] 📱 Student received real-time update, triggering check...')
+        }
+        
+        setTimeout(() => {
+          console.log('[LiveStreamContext] ⏱️ Executing delayed checkActiveLiveStream after real-time update...')
+          checkActiveLiveStream()
+        }, 500) // Small delay to ensure DB is updated
       })
-      .subscribe()
+      .subscribe((status) => {
+        console.log('[LiveStreamContext] 📡 Live streams subscription status:', status)
+      })
 
     const recordingsSubscription = supabase
       .channel('recorded_streams')
@@ -152,19 +184,33 @@ export const LiveStreamProvider = ({ children }: LiveStreamProviderProps) => {
         schema: 'public',
         table: 'recorded_streams'
       }, (payload) => {
-        console.log('Recorded streams update:', payload)
+        console.log('[LiveStreamContext] 📹 Recording update:', payload)
         fetchRecordedStreams()
       })
-      .subscribe()
+      .subscribe((status) => {
+        console.log('[LiveStreamContext] 📡 Recorded streams subscription status:', status)
+      })
 
     return () => {
+      if (periodicCheck) {
+        clearInterval(periodicCheck)
+      }
       streamSubscription.unsubscribe()
       recordingsSubscription.unsubscribe()
     }
-  }, [])
+  }, [canStream])
 
   const checkActiveLiveStream = async () => {
     try {
+      // Enhanced mobile debugging
+      console.log('[LiveStreamContext] 🔍 Checking for active live streams...')
+      console.log('[LiveStreamContext] 📱 Device info:', {
+        userAgent: navigator.userAgent,
+        isMobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+        canStream,
+        currentUser: user?.id
+      })
+      
       const { data, error } = await supabase
         .from('live_streams')
         .select('*')
@@ -174,10 +220,17 @@ export const LiveStreamProvider = ({ children }: LiveStreamProviderProps) => {
         .maybeSingle() // Use maybeSingle to handle 0 or 1 results gracefully
 
       if (error) {
-        console.error('Error checking active live stream:', error)
+        console.error('[LiveStreamContext] ❌ Error checking active live stream:', error)
+        console.log('[LiveStreamContext] 🔧 Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        
         // If table doesn't exist, mark as no active stream
         if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
-          console.log('Live streams table does not exist or no active streams found')
+          console.log('[LiveStreamContext] 📊 Live streams table does not exist or no active streams found')
           setIsLiveStreamActive(false)
           setStreamUrl(null)
           return
@@ -185,17 +238,40 @@ export const LiveStreamProvider = ({ children }: LiveStreamProviderProps) => {
         throw error
       }
 
+      console.log('[LiveStreamContext] 📊 Database query result:', {
+        dataExists: !!data,
+        dataCount: data ? 1 : 0,
+        timestamp: new Date().toISOString()
+      })
+
       if (data) {
-        console.log('Found active live stream:', data)
+        console.log('[LiveStreamContext] ✅ Found active live stream:', data)
+        console.log('[LiveStreamContext] 🎬 Stream details:', {
+          id: data.id,
+          title: data.title,
+          streamUrl: data.stream_url,
+          createdBy: data.created_by,
+          createdAt: data.created_at,
+          isActive: data.is_active
+        })
+        
         setIsLiveStreamActive(true)
         setStreamUrl(data.stream_url)
+        
+        // For students, trigger production streaming connection
+        if (!canStream) {
+          console.log('[LiveStreamContext] 📱 Student: Triggering production stream connection...')
+          console.log('[LiveStreamContext] 🔄 Incrementing stream update trigger from:', streamUpdateTrigger)
+          setStreamUpdateTrigger(prev => prev + 1)
+        }
       } else {
-        console.log('No active live streams found')
+        console.log('[LiveStreamContext] 📴 No active live streams found')
+        console.log('[LiveStreamContext] 📊 Current state will be reset to inactive')
         setIsLiveStreamActive(false)
         setStreamUrl(null)
       }
     } catch (error) {
-      console.error('Error checking active live stream:', error)
+      console.error('[LiveStreamContext] ❌ Error checking active live stream:', error)
       // Don't show error toast for table existence issues
       if (error instanceof Error && !error.message?.includes('does not exist')) {
         toast.error('Failed to check active streams')

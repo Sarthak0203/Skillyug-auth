@@ -7,11 +7,19 @@ import { StreamDebugPanel } from './StreamDebugPanel'
 import { LiveStreamDebugHelper } from './LiveStreamDebugHelper'
 import { Radio, VideoOff, Users } from 'lucide-react'
 
-const USE_PRODUCTION_STREAMING = process.env.VITE_AGORA_APP_ID && process.env.VITE_AGORA_APP_ID !== 'your-agora-app-id-here'
+const USE_PRODUCTION_STREAMING = import.meta.env.VITE_AGORA_APP_ID && import.meta.env.VITE_AGORA_APP_ID !== 'your-agora-app-id-here'
 
 export const LiveStreamSection = () => {
   const { profile } = useAuth()
   const { isLiveStreamActive, streamUrl, joinStream, leaveStream } = useLiveStream()
+  
+  console.log('[LiveStreamSection] Configuration:', {
+    USE_PRODUCTION_STREAMING,
+    AGORA_APP_ID: import.meta.env.VITE_AGORA_APP_ID,
+    isLiveStreamActive,
+    streamUrl,
+    userType: profile?.user_type
+  })
   
   const isAdmin = profile?.user_type === 'admin'
   const isInstructor = profile?.user_type === 'instructor'

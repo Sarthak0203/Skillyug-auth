@@ -9,7 +9,7 @@ import type {
 // Agora Configuration
 const AGORA_CONFIG = {
   // Get these from https://console.agora.io/
-  appId: process.env.VITE_AGORA_APP_ID || 'your-agora-app-id',
+  appId: import.meta.env.VITE_AGORA_APP_ID || 'your-agora-app-id',
   // You can generate tokens server-side for production security
   token: null, // For development, can be null for testing
 }

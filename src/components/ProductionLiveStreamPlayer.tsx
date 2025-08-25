@@ -60,14 +60,37 @@ export const ProductionLiveStreamPlayer = ({ streamUrl, canStream = false }: Pro
 
   // Auto-join as viewer when stream is detected
   useEffect(() => {
+    console.log('[ProductionPlayer] 🔄 Auto-join effect triggered with:', {
+      canStream,
+      isLiveStreamActive,
+      streamUrl,
+      userId: user?.id,
+      shouldJoin: !canStream && isLiveStreamActive && streamUrl && user
+    })
+    
     if (!canStream && isLiveStreamActive && streamUrl && user) {
       const channelName = streamUrl.replace('stream_', '').split('_')[1] || 'default'
-      console.log('[ProductionPlayer] Auto-joining as viewer:', channelName)
+      console.log('[ProductionPlayer] 🎯 Auto-joining as viewer:', {
+        originalStreamUrl: streamUrl,
+        extractedChannelName: channelName,
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      })
       
       productionStreamManager.joinAsViewer(channelName, user.id)
-        .catch(error => {
-          console.error('[ProductionPlayer] Failed to join as viewer:', error)
+        .then(() => {
+          console.log('[ProductionPlayer] ✅ Successfully joined as viewer')
         })
+        .catch(error => {
+          console.error('[ProductionPlayer] ❌ Failed to join as viewer:', {
+            error: error.message,
+            channelName,
+            userId: user.id,
+            streamUrl
+          })
+        })
+    } else {
+      console.log('[ProductionPlayer] ⏸️ Auto-join conditions not met')
     }
   }, [canStream, isLiveStreamActive, streamUrl, user])
 

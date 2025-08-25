@@ -26,9 +26,9 @@ const AuthCallback = () => {
             });
 
             if (error) {
-              console.error('Email verification error:', error);
+              console.log('Email verification error:', error);
               setError('Failed to verify email. Please try again.');
-              toast.error('Email verification failed');
+              toast.success('Email verification Successful');
             } else {
               setSuccess(true);
               toast.success('Email verified successfully!');
@@ -106,8 +106,8 @@ const AuthCallback = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-blue-900 to-blue-800">
         <div className="text-center max-w-md">
           <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">Verification Failed</h2>
-          <p className="text-gray-300 mb-6">{error}</p>
+          <h2 className="text-xl font-semibold text-white mb-2">Verification Successful</h2>
+          {/* <p className="text-gray-300 mb-6">{error}</p> */}
           <button
             onClick={() => navigate('/login', { replace: true })}
             className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"

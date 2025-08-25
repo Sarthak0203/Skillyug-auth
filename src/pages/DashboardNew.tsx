@@ -3,7 +3,6 @@ import { BookOpen, LogOut, User, Settings, Shield, Mail, Calendar, CheckCircle, 
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { LiveStreamSection } from '../components/LiveStreamSection';
-import { LiveStreamDebugPanel } from '../components/LiveStreamDebugPanel';
 
 const Dashboard = () => {
   const { user, profile, signOut, createProfileForCurrentUser, updatePassword } = useAuth();
@@ -221,7 +220,7 @@ const Dashboard = () => {
                     </button>
                   )}
 
-                  {(profile?.user_type === 'admin' || profile?.user_type === 'instructor') && (
+                  {profile?.user_type === 'admin' && (
                     <button 
                       onClick={() => setActiveTab('livestream')}
                       className="w-full flex items-center space-x-3 p-4 bg-orange-800/30 hover:bg-orange-800/50 rounded-lg border border-orange-700/50 transition-colors"
@@ -407,9 +406,6 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-      
-      {/* Debug Panel */}
-      <LiveStreamDebugPanel />
     </div>
   );
 };

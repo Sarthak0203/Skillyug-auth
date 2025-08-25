@@ -10,53 +10,56 @@ import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
 import { AuthProvider } from './contexts/AuthContext'
+import { LiveStreamProvider } from './contexts/LiveStreamContext'
 import { Toaster } from 'react-hot-toast'
 
 function App() {
   return (
     <AuthProvider>
-      <div className="min-h-screen w-full bg-gradient-to-br from-black via-blue-900 to-blue-800">
-        <Navbar />
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/sign-up" element={<SignupForm />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/auth/reset-password" element={<ResetPasswordRedirect />} />
-          <Route path="/reset-password-form" element={<ResetPasswordForm />} />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
-        
-        <Toaster 
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: 'rgba(15, 23, 42, 0.8)',
-              color: '#fff',
-              border: '1px solid rgba(59, 130, 246, 0.3)',
-              backdropFilter: 'blur(10px)',
-            },
-            success: {
-              iconTheme: {
-                primary: '#f97316',
-                secondary: '#fff',
+      <LiveStreamProvider>
+        <div className="min-h-screen w-full bg-gradient-to-br from-black via-blue-900 to-blue-800">
+          <Navbar />
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/sign-up" element={<SignupForm />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/reset-password" element={<ResetPasswordRedirect />} />
+            <Route path="/reset-password-form" element={<ResetPasswordForm />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+          </Routes>
+          
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'rgba(15, 23, 42, 0.8)',
+                color: '#fff',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                backdropFilter: 'blur(10px)',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
+              success: {
+                iconTheme: {
+                  primary: '#f97316',
+                  secondary: '#fff',
+                },
               },
-            },
-          }}
-        />
-      </div>
+              error: {
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+        </div>
+      </LiveStreamProvider>
     </AuthProvider>
   )
 }

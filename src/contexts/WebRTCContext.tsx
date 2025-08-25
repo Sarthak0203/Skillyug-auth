@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef, useEffect, useState } from 'react'
+import { createContext, useContext, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 interface WebRTCContextType {
@@ -23,7 +23,7 @@ interface WebRTCProviderProps {
 }
 
 export const WebRTCProvider = ({ children }: WebRTCProviderProps) => {
-  const [viewers, setViewers] = useState<string[]>([])
+  const [viewers] = useState<string[]>([])
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map())
   const localStream = useRef<MediaStream | null>(null)
 
@@ -59,7 +59,7 @@ export const WebRTCProvider = ({ children }: WebRTCProviderProps) => {
     // 3. Handle answers and ICE candidates
     
     // For now, store the stream for local use
-    peerConnections.current.forEach((pc, viewerId) => {
+    peerConnections.current.forEach((pc) => {
       stream.getTracks().forEach(track => {
         pc.addTrack(track, stream)
       })
